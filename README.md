@@ -4,9 +4,12 @@ Class 3 assignment: train a Deep Q-Network (DQN) to play Atari Ms. Pac-Man,
 choosing exploration rate, episode count, and learning rate, and reporting
 the agent's learned behavior.
 
-> **Status: v2 notebook ready, not yet run.** The sections marked `TODO (fill
-> in after running the notebook)` below get filled in with real numbers once
-> `mspacman_dqn.ipynb` has been executed in Google Colab.
+> **Status:** submitting **v1** (complete, results below) for tonight's
+> deadline. **v2** — a much larger training run (6000 vs. 250 episodes) plus
+> Prioritized Experience Replay and N-step returns, aimed at closing more of
+> the gap to the professor's ~3000 reference score — is training now and
+> will follow as an updated deliverable. Its sections below are marked
+> `TODO` until that run finishes.
 
 ## The RL setup
 
@@ -91,14 +94,22 @@ settings, changing only which network is being evaluated:
 
 ## Results
 
-**v1** (for reference — superseded by v2 below):
+**v1** (submitted tonight):
 
 | | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
 |---|---|---|---|---|---|---|
 | Baseline (untrained) | 110.0 | 110.0 | 120.0 | 130.0 | 90.0 | **112.0** |
 | Trained (250 episodes) | 340.0 | 1070.0 | 520.0 | 1050.0 | 1290.0 | **854.0** |
 
-**v2**: TODO (fill in after running the notebook):
+- Episodes completed: `250`
+- Elapsed training time: `~3 minutes` (Colab, T4 GPU)
+- Training curves plot: embedded directly in `mspacman_dqn_v1_executed.ipynb`
+  (the executed notebook has all outputs visible, including the baseline/
+  trained scores printed above and this plot).
+- Gameplay GIFs (untrained + trained): being finalized as standalone files
+  and will be added shortly.
+
+**v2** (in progress — to follow as an updated deliverable): TODO
 
 | | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
 |---|---|---|---|---|---|---|
@@ -140,10 +151,10 @@ PER in the Rainbow paper.
 
 ## Reproducing this
 
-1. Open `mspacman_dqn.ipynb` in Google Colab.
-2. Runtime → Change runtime type → GPU (T4).
-3. Runtime → Run all.
-4. All hyperparameters are set in the clearly-labeled cell near the top of
-   the notebook. If training needs to be interrupted early, use the
-   *Resume from a checkpoint* cell before continuing to the evaluation
-   cells.
+- **v1** (submitted results above): `mspacman_dqn_v1_executed.ipynb` — already
+  executed, all outputs visible, nothing further to run.
+- **v2** (in progress): `mspacman_dqn.ipynb` — open in Google Colab, Runtime →
+  Change runtime type → GPU (T4), Runtime → Run all. All hyperparameters are
+  set in the clearly-labeled cell near the top. If training needs to be
+  interrupted early, the *Resume from a checkpoint* cell handles that safely
+  before continuing to the evaluation cells.
