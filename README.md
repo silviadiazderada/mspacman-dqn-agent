@@ -4,7 +4,7 @@ Class 3 assignment: train a Deep Q-Network (DQN) to play Atari Ms. Pac-Man,
 choosing exploration rate, episode count, and learning rate, and reporting
 the agent's learned behavior.
 
-> **Status: notebook ready, not yet run.** The sections marked `TODO (fill
+> **Status: v2 notebook ready, not yet run.** The sections marked `TODO (fill
 > in after running the notebook)` below get filled in with real numbers once
 > `mspacman_dqn.ipynb` has been executed in Google Colab.
 
@@ -19,26 +19,45 @@ the agent's learned behavior.
   -1/0/+1, so the network can still tell a 10-point dot apart from a
   200-1600 point ghost.
 
-## Hyperparameters chosen
+## Two iterations
 
-| Hyperparameter | Value | Why |
-|---|---|---|
-| Learning rate | `0.0001` | The assignment's own suggested reference value; also the standard value used in the original DQN research on Atari, so it's a well-tested starting point rather than a guess. |
-| Exploration (post-warmup) | `0.1` | Anneals from 100% random down to a steady 10% floor over the first 150 episodes — enough residual randomness to keep discovering strategies, without drowning out what's been learned. |
-| Episodes | `250` | Sized to fit a ~1-2 hour Colab GPU session. |
+**v1** (250 episodes, no Prioritized Experience Replay) reached a mean
+trained score of **854** against a baseline of **112** — a 7.6x
+improvement, and better than several classmates' public results for this
+same assignment. It fell well short, though, of the professor's ~3000
+reference score. Digging into where that number comes from: it matches the
+published **Double DQN** result for Ms. Pac-Man in the original research
+(Van Hasselt et al.) — achieved after **50 million training steps**, roughly
+300x more than v1 used. v1's 250 episodes had also only taken about 3
+minutes on a Colab T4 GPU, meaning the original 1-2 hour time budget was
+barely touched.
+
+**v2** (this version) responds to that: it raises `EPISODES` to 6000 (still
+comfortably inside the original time budget), adds **Prioritized Experience
+Replay** and **N-step returns** to make each episode's learning more
+efficient, and makes a small supporting change to the exploration floor.
+Full reasoning for each choice is below and in the notebook's
+*Hyperparameters* cell.
+
+## Hyperparameters chosen (v2)
+
+| Hyperparameter | v1 | v2 | Why changed |
+|---|---|---|---|
+| Learning rate | `0.0001` | `0.0001` (unchanged) | Not the bottleneck in v1 — loss was still decreasing steadily, not stuck or diverging. |
+| Exploration (post-warmup) | `0.1` | `0.05` | With ~24x more training episodes, the agent gets far more chances to refine a policy, so it's worth exploiting learned behavior a bit more than a much shorter run would. A real but modest lever on its own. |
+| Episodes | `250` | `6000` | The main lever. v1 used only ~3 minutes of a 1-2 hour budget. A classmate's public repo for this same assignment reported a mean trained score of 1360 using 2000 episodes; 6000 is a deliberate push past that within the same time budget. |
 
 Supporting settings (replay buffer size, target-network update frequency,
-warmup steps) were all scaled down roughly 10x from typical full-scale DQN
-defaults, since those defaults assume millions of training frames — at this
-assignment's scale, the full-scale defaults would mean the replay buffer and
-target network barely engage before training ends.
+warmup steps) were scaled ~10x down from full-scale DQN defaults in v1
+(appropriate for a short run) and partially scaled back up in v2 now that
+the step budget is much larger — though still far short of the ~50 million
+steps the literature's ~3000 score required, which isn't feasible in a
+single Colab session.
 
 ## Beyond plain DQN
 
-Per feedback that strong scores in this class have come from smarter
-learning rather than just longer training, three low-complexity, well-
-established upgrades were added on top of plain DQN (all validated on
-Ms. Pac-Man specifically in the original published research):
+Five low-complexity, well-established upgrades on top of plain DQN, all
+validated on Ms. Pac-Man specifically in the original published research:
 
 - **Double DQN** — corrects a known tendency of plain DQN to overestimate
   how good its own choices are.
@@ -48,10 +67,13 @@ Ms. Pac-Man specifically in the original published research):
   ghost right next to Pac-Man).
 - **Reward scaling instead of hard clipping** — preserves the real
   difference in value between small and large in-game rewards.
-
-**Prioritized Experience Replay** (replaying the moves the network found
-most surprising more often) was considered but deliberately left out of
-this run — see *Limitations and next experiment* below.
+- **Prioritized Experience Replay** *(new in v2)* — replays the transitions
+  the network's predictions were most wrong about more often (via a sum-tree
+  for efficient proportional sampling), with importance-sampling correction
+  so this doesn't bias what the network learns.
+- **N-step returns** *(new in v2)* — bootstraps 3 real steps ahead instead
+  of 1, so the network relies more on real observed reward and less on its
+  own (still-improving) guesses, which speeds up early learning.
 
 ## Evaluation methodology
 
@@ -69,7 +91,14 @@ settings, changing only which network is being evaluated:
 
 ## Results
 
-TODO (fill in after running the notebook):
+**v1** (for reference — superseded by v2 below):
+
+| | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
+|---|---|---|---|---|---|---|
+| Baseline (untrained) | 110.0 | 110.0 | 120.0 | 130.0 | 90.0 | **112.0** |
+| Trained (250 episodes) | 340.0 | 1070.0 | 520.0 | 1050.0 | 1290.0 | **854.0** |
+
+**v2**: TODO (fill in after running the notebook):
 
 | | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
 |---|---|---|---|---|---|---|
@@ -79,33 +108,35 @@ TODO (fill in after running the notebook):
 - Episodes completed: `TODO`
 - Total environment steps / learning updates performed: `TODO`
 - Elapsed training time: `TODO`
-- Hardware: `TODO` (expected: Google Colab, T4 GPU)
+- Hardware: Google Colab, T4 GPU
 
 ## Expected vs. observed outcome
 
-**Expected**: at this scale — hundreds, not millions, of training episodes —
-Ms. Pac-Man is a harder game than typical small classroom RL demos (a
-comparable Pong demo needed roughly 900 episodes and ~7 hours to show clear
-improvement, and Ms. Pac-Man's larger, multi-ghost state space is more
-demanding than Pong's). The honestly expected outcome is a **modest,
-possibly noisy** improvement over the random baseline — not a dramatic one.
+**Expected**: v1's actual result (854, a 7.6x improvement) already beat the
+honest "modest improvement" expectation I'd set going in. For v2, with 24x
+more episodes plus PER and N-step, a further meaningful jump is realistic —
+but matching the literature's ~3000 score exactly is not, since that
+required roughly 300x the training steps this run uses. A good-faith target
+is closing a substantial part of the gap, not all of it.
 
-**Observed**: `TODO` — describe what the results table above actually
-showed, and whether it matched this expectation.
+**Observed**: `TODO` — describe what the v2 results table above actually
+showed, and how it compares to both v1 and the ~3000 reference.
 
 ## Limitations and next experiment
 
-**Limitation**: training budget (~250 episodes / 1-2 hours on a free Colab
-GPU) is small relative to what full DQN research runs use, which caps how
-much the agent can realistically improve in this run.
+**Limitation**: even v2's 6000-episode budget is a small fraction of the
+~50 million training steps the published ~3000 Double DQN score for
+Ms. Pac-Man required — some of the remaining gap is very likely explained
+by raw training volume alone, not something a hyperparameter or algorithm
+choice can fully substitute for within one Colab session.
 
-**Proposed next experiment**: add **Prioritized Experience Replay** —
-instead of sampling past experience uniformly at random, replay the
-transitions the network's predictions were most wrong about more often, so
-learning time is spent where it's most useful. This was left out of this run
-to keep the implementation and debugging surface manageable within the time
-budget, but it's the most direct lever for getting more learning progress
-out of the same number of episodes.
+**Proposed next experiment**: extend training across multiple Colab
+sessions using the notebook's checkpoint files to resume rather than
+restart — the model weights are already saved every 1000 episodes for
+exactly this purpose. A secondary idea worth testing is Noisy Networks
+(learned, state-dependent exploration noise instead of a hand-set epsilon
+schedule), which has shown further gains on top of Double DQN + Dueling +
+PER in the Rainbow paper.
 
 ## Reproducing this
 
@@ -113,4 +144,6 @@ out of the same number of episodes.
 2. Runtime → Change runtime type → GPU (T4).
 3. Runtime → Run all.
 4. All hyperparameters are set in the clearly-labeled cell near the top of
-   the notebook.
+   the notebook. If training needs to be interrupted early, use the
+   *Resume from a checkpoint* cell before continuing to the evaluation
+   cells.
