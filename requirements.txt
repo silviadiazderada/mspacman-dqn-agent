@@ -1,0 +1,8 @@
+gymnasium[atari]
+ale-py
+stable-baselines3
+torch
+imageio
+opencv-python-headless
+matplotlib
+numpy
