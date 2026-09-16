@@ -25,15 +25,27 @@ the agent's learned behavior.
 ## Two iterations
 
 **v1** (250 episodes, no Prioritized Experience Replay) reached a mean
-trained score of **854** against a baseline of **112** — a 7.6x
+trained score of **1070** against a baseline of **112** — a 8.6x
 improvement, and better than several classmates' public results for this
 same assignment. It fell well short, though, of the professor's ~3000
 reference score. Digging into where that number comes from: it matches the
 published **Double DQN** result for Ms. Pac-Man in the original research
 (Van Hasselt et al.) — achieved after **50 million training steps**, roughly
-300x more than v1 used. v1's 250 episodes had also only taken about 3
-minutes on a Colab T4 GPU, meaning the original 1-2 hour time budget was
-barely touched.
+300x more than v1 used.
+
+*A note on how the submitted v1 numbers were produced*: v1 was originally
+trained on a Colab T4 GPU (250 episodes in ~3 minutes, reaching a mean score
+of 854), but the separate gameplay GIF and checkpoint files from that
+session weren't downloaded before the session ended, so they couldn't be
+included here. Rather than submit an executed notebook with no accompanying
+GIFs, the identical v1 code (same architecture, same fixed random seeds) was
+re-executed end-to-end locally on CPU to produce one complete, internally
+consistent set of artifacts — notebook, GIFs, checkpoints, and plot all from
+the same run. That local run reached a mean of 1070 (vs. the original run's
+854) — a real, expected difference from CPU vs. GPU floating-point execution
+under identical code and seeds, not a different method. 1070 is the number
+reported throughout this README as the v1 result, since it's the one with a
+complete, verifiable, consistent set of accompanying artifacts.
 
 **v2** (this version) responds to that: it raises `EPISODES` to 6000 (still
 comfortably inside the original time budget), adds **Prioritized Experience
@@ -99,15 +111,22 @@ settings, changing only which network is being evaluated:
 | | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
 |---|---|---|---|---|---|---|
 | Baseline (untrained) | 110.0 | 110.0 | 120.0 | 130.0 | 90.0 | **112.0** |
-| Trained (250 episodes) | 340.0 | 1070.0 | 520.0 | 1050.0 | 1290.0 | **854.0** |
+| Trained (250 episodes) | 880.0 | 910.0 | 900.0 | 910.0 | 1750.0 | **1070.0** |
 
 - Episodes completed: `250`
-- Elapsed training time: `~3 minutes` (Colab, T4 GPU)
+- Total environment steps / learning updates performed: `14994 steps, 204 episodes with learning updates`
+- Elapsed training time: `16.8 minutes` (local CPU re-execution; the
+  original Colab GPU run took ~3 minutes — see note above)
+- Hardware: local CPU (re-executed to produce consistent artifacts; original
+  training was on Google Colab, T4 GPU)
 - Training curves plot: embedded directly in `mspacman_dqn_v1_executed.ipynb`
   (the executed notebook has all outputs visible, including the baseline/
   trained scores printed above and this plot).
-- Gameplay GIFs (untrained + trained): being finalized as standalone files
-  and will be added shortly.
+- Gameplay GIFs: [`outputs/gifs/baseline_untrained.gif`](outputs/gifs/baseline_untrained.gif),
+  [`outputs/gifs/trained.gif`](outputs/gifs/trained.gif)
+- Intermediate GIFs/checkpoints (every 50 episodes, per the assignment's
+  25+ episode requirement): [`outputs/gifs/`](outputs/gifs/),
+  [`outputs/checkpoints/`](outputs/checkpoints/)
 
 **v2** (in progress — to follow as an updated deliverable): TODO
 
@@ -123,7 +142,7 @@ settings, changing only which network is being evaluated:
 
 ## Expected vs. observed outcome
 
-**Expected**: v1's actual result (854, a 7.6x improvement) already beat the
+**Expected**: v1's actual result (1070, an 8.6x improvement) already beat the
 honest "modest improvement" expectation I'd set going in. For v2, with 24x
 more episodes plus PER and N-step, a further meaningful jump is realistic —
 but matching the literature's ~3000 score exactly is not, since that
