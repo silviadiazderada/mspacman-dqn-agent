@@ -4,12 +4,15 @@ Class 3 assignment: train a Deep Q-Network (DQN) to play Atari Ms. Pac-Man,
 choosing exploration rate, episode count, and learning rate, and reporting
 the agent's learned behavior.
 
-> **Status:** submitting **v1** (complete, results below) for tonight's
-> deadline. **v2** — a much larger training run (6000 vs. 250 episodes) plus
+> **Status:** **v1** (results below) is the submitted deliverable — complete,
+> consistent, and verified. A **v2** attempt (6000 episodes, adding
 > Prioritized Experience Replay and N-step returns, aimed at closing more of
-> the gap to the professor's ~3000 reference score — is training now and
-> will follow as an updated deliverable. Its sections below are marked
-> `TODO` until that run finishes.
+> the gap to the professor's ~3000 reference score) was started, but the
+> Colab session disconnected overnight before training finished, and no
+> reliable intermediate result was captured. v2's code and reasoning are
+> still documented below as designed-but-unverified work; see *Limitations
+> and next experiment* for why it didn't complete and what running it
+> properly would take.
 
 ## The RL setup
 
@@ -47,12 +50,14 @@ under identical code and seeds, not a different method. 1070 is the number
 reported throughout this README as the v1 result, since it's the one with a
 complete, verifiable, consistent set of accompanying artifacts.
 
-**v2** (this version) responds to that: it raises `EPISODES` to 6000 (still
-comfortably inside the original time budget), adds **Prioritized Experience
-Replay** and **N-step returns** to make each episode's learning more
-efficient, and makes a small supporting change to the exploration floor.
-Full reasoning for each choice is below and in the notebook's
-*Hyperparameters* cell.
+**v2** (attempted, did not complete) was designed to respond to that: it
+raises `EPISODES` to 6000 (still comfortably inside the original time
+budget), adds **Prioritized Experience Replay** and **N-step returns** to
+make each episode's learning more efficient, and makes a small supporting
+change to the exploration floor. Full reasoning for each choice is below and
+in the notebook's *Hyperparameters* cell. The code was tested and verified
+correct (see the commit history), but the actual overnight training run
+disconnected before finishing — see *Limitations* below.
 
 ## Hyperparameters chosen (v2)
 
@@ -128,17 +133,13 @@ settings, changing only which network is being evaluated:
   25+ episode requirement): [`outputs/gifs/`](outputs/gifs/),
   [`outputs/checkpoints/`](outputs/checkpoints/)
 
-**v2** (in progress — to follow as an updated deliverable): TODO
-
-| | Seed 0 | Seed 1 | Seed 2 | Seed 3 | Seed 4 | Mean |
-|---|---|---|---|---|---|---|
-| Baseline (untrained) | | | | | | |
-| Trained | | | | | | |
-
-- Episodes completed: `TODO`
-- Total environment steps / learning updates performed: `TODO`
-- Elapsed training time: `TODO`
-- Hardware: Google Colab, T4 GPU
+**v2** (attempted, incomplete — no result to report): the 6000-episode run
+was started on a Colab T4 GPU, reached at least episode 200 (confirmed from
+a mid-run screenshot), but the session disconnected overnight before
+finishing and before any post-training evaluation ran. There is no baseline/
+trained score table for v2, since none was ever produced — reporting one
+would mean fabricating numbers. This is itself the honest result of the v2
+attempt.
 
 ## Expected vs. observed outcome
 
@@ -149,21 +150,33 @@ but matching the literature's ~3000 score exactly is not, since that
 required roughly 300x the training steps this run uses. A good-faith target
 is closing a substantial part of the gap, not all of it.
 
-**Observed**: `TODO` — describe what the v2 results table above actually
-showed, and how it compares to both v1 and the ~3000 reference.
+**Observed**: v2 never reached the observation stage — the Colab session
+disconnected overnight (most likely the laptop it was tethered to went to
+sleep or lost its network connection) before the 6000-episode run finished.
+No score, plot, or GIF exists from that attempt to compare against v1 or the
+~3000 reference. v1's 1070 remains the best verified result from this
+project.
 
 ## Limitations and next experiment
 
-**Limitation**: even v2's 6000-episode budget is a small fraction of the
-~50 million training steps the published ~3000 Double DQN score for
-Ms. Pac-Man required — some of the remaining gap is very likely explained
-by raw training volume alone, not something a hyperparameter or algorithm
-choice can fully substitute for within one Colab session.
+**Limitation 1 (score gap)**: even v2's 6000-episode budget is a small
+fraction of the ~50 million training steps the published ~3000 Double DQN
+score for Ms. Pac-Man required — some of the remaining gap is very likely
+explained by raw training volume alone, not something a hyperparameter or
+algorithm choice can fully substitute for within one Colab session.
 
-**Proposed next experiment**: extend training across multiple Colab
-sessions using the notebook's checkpoint files to resume rather than
-restart — the model weights are already saved every 1000 episodes for
-exactly this purpose. A secondary idea worth testing is Noisy Networks
+**Limitation 2 (v2 didn't finish)**: a free-tier Colab session depends on
+the browser tab staying connected for the whole run — a laptop going to
+sleep or a lost connection kills the runtime and, with it, any progress not
+already checkpointed. The v2 attempt hit exactly this: it disconnected
+overnight before completing, so a real, larger-scale result was never
+obtained, even though the underlying code was verified correct beforehand.
+
+**Proposed next experiment**: re-run v2 either using Colab Pro's background
+execution (survives a closed tab) or in shorter, attended chunks using the
+notebook's own checkpoint/resume mechanism (checkpoints save every 1000
+episodes specifically so a run can pick back up rather than restart from
+scratch). A secondary idea worth testing on top of that is Noisy Networks
 (learned, state-dependent exploration noise instead of a hand-set epsilon
 schedule), which has shown further gains on top of Double DQN + Dueling +
 PER in the Rainbow paper.
@@ -172,8 +185,10 @@ PER in the Rainbow paper.
 
 - **v1** (submitted results above): `mspacman_dqn_v1_executed.ipynb` — already
   executed, all outputs visible, nothing further to run.
-- **v2** (in progress): `mspacman_dqn.ipynb` — open in Google Colab, Runtime →
-  Change runtime type → GPU (T4), Runtime → Run all. All hyperparameters are
-  set in the clearly-labeled cell near the top. If training needs to be
-  interrupted early, the *Resume from a checkpoint* cell handles that safely
-  before continuing to the evaluation cells.
+- **v2** (code complete, not yet successfully run to completion):
+  `mspacman_dqn.ipynb` — open in Google Colab, Runtime → Change runtime type
+  → GPU (T4), Runtime → Run all, and keep the tab connected for the full
+  ~1-2 hour run (see *Limitations* above for why that matters). All
+  hyperparameters are set in the clearly-labeled cell near the top. If
+  training is interrupted, the *Resume from a checkpoint* cell picks up from
+  the latest saved checkpoint rather than losing all progress.
